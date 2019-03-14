@@ -1,0 +1,18 @@
+#20190314 TJW
+#This is something I have found usefull when looking at users activity. Modify the index/sourcetype before use. $user_name$ is listed as a 
+# token you can utilize when creating this in a dashboard pannel to be able to setup multiple queires that use that token. 
+# Use at own risk.
+index=your_index sourcetype=windows_event_source EventCode=4624 OR EventCode=4634
+|eval Date=strftime(_time,"%Y-%M-%D %H:%M:%S"
+|search Account_Name=$user_name$
+|transaction Account_Name startswith=EventCode=4624 endswith=EventCode=4634
+|where duration >=0
+|stats avg(duration) as avgdur,eval max(duration) as maxdur,eval min(duration) as mindur
+|eval avgdur=tostring(avgdur,"duration")
+|eval maxdur=tostring(maxdur,"duration")
+|eval mindur=tostring(mindur,"duration")
+|eval avgdur=substr(avgdur,1,8)
+|eval maxdur=substr(maxdur,1,8)
+|eval mindur=substr(mindur,1,8)
+|table avgdur, maxdur, mindur
+|rename avgdur as "Average Logon Duration", maxdur as "Max Logon Duration", mindur as "Min Logon Duration"
