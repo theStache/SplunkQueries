@@ -1,0 +1,12 @@
+#20190314 TJW
+#This is something I have found usefull when looking at users activity. Modify the index/sourcetype before use. $user_name$ is listed as a 
+# token you can utilize when creating this in a dashboard pannel to be able to setup multiple queires that use that token. 
+# Use at own risk.
+index=your_index sourcetype=windows_event_source EventCode=4624 OR EventCode=4634
+|eval Date=strftime(_time,"%Y-%M-%D %H:%M:%S"
+|search Account_Name=$user_name$
+|transaction Account_Name startswith=EventCode=4624 endswith=EventCode=4634
+|where duration >1
+|eval duration=tostring(duration,"duration")
+|table host, Account_Name, Source_Network_Address, Logon_Type, duration, Date
+|rename host as "Source Host", Account_Name as "Account", Source_Network_Address as "Source IP", duration as "Logon Duration"
